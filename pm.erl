@@ -46,14 +46,8 @@ ivar_loop({vanilla, T, Compromised}) ->
 		    ivar_loop({vanilla, T, true})
 	    end;
 	{From, compromised} ->
-	    if
-		Compromised == true ->
-		    From ! {self(), true},
-		    ivar_loop({vanilla, T, Compromised});
-		(true) ->
-		    From ! {self(), false},
-		    ivar_loop({vanilla, T, Compromised})
-	    end;
+	    From ! {self(), Compromised},
+	    ivar_loop({vanilla, T, Compromised});
 	 exit -> finish
     end;
 
@@ -72,7 +66,7 @@ ivar_loop({princess, T, P}) ->
 	    if
 		T == empty ->
 		    try
-			PredRes = P(T),
+			PredRes = P(NewT),
 			if 
 			    PredRes ->
 				From ! {self(), put},
@@ -88,6 +82,9 @@ ivar_loop({princess, T, P}) ->
 		(true) ->
 		    From ! {self(), continue},
 		    ivar_loop({princess, T, P})
- 	    end;	    
+ 	    end;
+	{From, compromised} ->
+	    From ! {self(), false},
+	    ivar_loop({princess, T, P});
 	 exit -> finish
     end.
