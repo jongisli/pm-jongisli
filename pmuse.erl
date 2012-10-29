@@ -2,7 +2,7 @@
 -export([pmmap/2]).
 -import(pm).
 
-%influenced by: http://blog.vmoroz.com/2011/01/erlang-pmap.html
+%influenced by: http://bc.tech.coop/blog/070601.html
 pmmap(F, L) ->
     [pm:get(Pid) || 
 	{Pid,_} <- [{Pid,pm:put(Pid,Var)} || 
