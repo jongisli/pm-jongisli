@@ -1,5 +1,5 @@
 -module(pm).
--export([newVanilla/0, newPrincess/1, get/1, put/2]).
+-export([newVanilla/0, newPrincess/1, get/1, put/2, compromised/1]).
 
 get(V) ->
     %io:format("get called~n", []),
@@ -15,6 +15,9 @@ rpc(Pid, Request) ->
 	{Pid, Response} ->
 	    Response
     end.
+
+compromised(V) ->
+    rpc(V, compromised).
 
 newVanilla() ->
     spawn(fun() -> ivar_loop({vanilla, empty, false}) end).
@@ -42,7 +45,16 @@ ivar_loop({vanilla, T, Compromised}) ->
 		(true) ->
 		    From ! {self(), compromised},
 		    ivar_loop({vanilla, T, true})
-	    end;	    
+	    end;
+	{From, compromised} ->
+	    if
+		Compromised == true ->
+		    From ! {self(), true},
+		    ivar_loop({vanilla, T, Compromised});
+		(true) ->
+		    From ! {self(), false},
+		    ivar_loop({vanilla, T, Compromised})
+	    end;
 	 exit -> finish
     end;
 
