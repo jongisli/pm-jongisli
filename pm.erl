@@ -2,14 +2,12 @@
 -export([newVanilla/0, newPrincess/1, get/1, put/2, compromised/1]).
 
 get(V) ->
-    %io:format("get called~n", []),
     rpc(V, get).
 
 put(V, T) ->
     rpc(V, {put, T}).
 
 rpc(Pid, Request) ->
-    %io:format("sending ~p to ~p~n", [Request, Pid]),
     Pid ! {self(), Request},
     receive
 	{Pid, Response} ->
