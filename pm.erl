@@ -30,14 +30,13 @@ ivar_loop({vanilla, T, Compromised}) ->
         {From, get} ->
             if 
                 T == empty -> 
-		    io:format("blocking ~p~n", [From]),
+		    self() ! {From, get},
 		    ivar_loop({vanilla, T, Compromised});
                 (true) -> 
 		    From ! {self(), T},
                     ivar_loop({vanilla, T, Compromised})
 	    end;
 	{From, {put, NewT}} ->
-	    io:format("putting ~p~n", [NewT]),
 	    if
 		T == empty ->
 		    From ! {self(), put},
@@ -63,14 +62,13 @@ ivar_loop({princess, T, P}) ->
         {From, get} ->
             if 
                 T == empty -> 
-		    io:format("blocking ~p~n", [From]),
+		    self() ! {From, get},
 		    ivar_loop({princess, T, P});
                 (true) -> 
 		    From ! {self(), T},
                     ivar_loop({princess, T, P})
 	    end;
 	{From, {put, NewT}} ->
-	    io:format("putting ~p~n", [NewT]),
 	    if
 		T == empty ->
 		    try
