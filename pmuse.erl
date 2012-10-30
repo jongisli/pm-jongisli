@@ -10,11 +10,18 @@ pmmap(F, L) ->
 	Pid <- [spawn(fun() -> Parent ! {self(), V, pm:put(V,F(X))} end) || 
 		   {V,X} <- PidsVals]].
 
+
+% ////
+% Concurrently checks if each node-value in a tree satisfies a predicate.
+% It's concurrent since we try to put the node-value into a Princess IVar
+% which gives us false if the predicate is erroneous.  
+% ////
 treeforall({node, X, Left, Right}, P) ->
-    PredRes = P(X),
+    Princess = pm:newPrincess(P),
+    Put = pm:put(Princess, X),
     io:format("Checking ~p~n",[X]),
     if 
-	PredRes == false ->
+	Put == predicate_false ->
 	    false;
 	true -> 
 	    treeforall(Left, P),
@@ -23,9 +30,6 @@ treeforall({node, X, Left, Right}, P) ->
 treeforall(leaf,_) ->
     io:format("Reached end~n",[]),
     true.
-
-
-	  
 
 
 tree_of(Xs) -> build([{leaf,X} || X <- Xs ]).
