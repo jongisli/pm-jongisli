@@ -6,12 +6,14 @@
 pmmap(F, L) ->
     Parent = self(),
     PidsVals = [{pm:newVanilla(), X} || X <- L],
-    [receive {Pid, IVar, _} -> pm:get(IVar) end || 
-	Pid <- [spawn(fun() -> Parent ! {self(), V, pm:put(V,F(X))} end) || 
+    [receive {IVar, _} -> pm:get(IVar) end || 
+	Pid <- [spawn(fun() -> Parent ! {V, pm:put(V,F(X))} end) || 
 		   {V,X} <- PidsVals]].
 
 
 % ////
+% WARNING: Only works if pm:put/2 responds with a message.
+%
 % Concurrently checks if each node-value in a tree satisfies a predicate.
 % It's concurrent since we try to put the node-value into a Princess IVar
 % which gives us false if the predicate is erroneous.  

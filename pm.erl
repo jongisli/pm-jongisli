@@ -5,7 +5,7 @@ get(V) ->
     rpc(V, get).
 
 put(V, T) ->
-    rpc(V, {put, T}).
+    V ! {self(), {put, T}}.
 
 rpc(Pid, Request) ->
     Pid ! {self(), Request},
@@ -34,19 +34,16 @@ ivar_loop({vanilla, T, Compromised}) ->
 		    From ! {self(), T},
                     ivar_loop({vanilla, T, Compromised})
 	    end;
-	{From, {put, NewT}} ->
+	{_, {put, NewT}} ->
 	    if
 		T == empty ->
-		    From ! {self(), put},
 		    ivar_loop({vanilla, NewT, false});
 		(true) ->
-		    From ! {self(), compromised},
 		    ivar_loop({vanilla, T, true})
 	    end;
 	{From, compromised} ->
 	    From ! {self(), Compromised},
-	    ivar_loop({vanilla, T, Compromised});
-	 exit -> finish
+	    ivar_loop({vanilla, T, Compromised})
     end;
 
 ivar_loop({princess, T, P}) ->
@@ -60,29 +57,24 @@ ivar_loop({princess, T, P}) ->
 		    From ! {self(), T},
                     ivar_loop({princess, T, P})
 	    end;
-	{From, {put, NewT}} ->
+	{_, {put, NewT}} ->
 	    if
 		T == empty ->
 		    try
 			PredRes = P(NewT),
 			if 
 			    PredRes ->
-				From ! {self(), put},
 				ivar_loop({princess, NewT, P});
 			    (true) ->
-				From ! {self(), predicate_false},
 				ivar_loop({princess, T, P})
 			end
 		    after
-			From ! {self(), false},
 			ivar_loop({princess, T, P})
 		    end;
 		(true) ->
-		    From ! {self(), continue},
 		    ivar_loop({princess, T, P})
  	    end;
 	{From, compromised} ->
 	    From ! {self(), false},
-	    ivar_loop({princess, T, P});
-	 exit -> finish
+	    ivar_loop({princess, T, P})
     end.
