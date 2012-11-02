@@ -21,7 +21,6 @@ pmmap(F, L) ->
 treeforall({node, X, Left, Right}, P) ->
     Princess = pm:newPrincess(P),
     Put = pm:put(Princess, X),
-    io:format("Checking ~p~n",[X]),
     if 
 	Put == predicate_false ->
 	    false;
@@ -30,7 +29,6 @@ treeforall({node, X, Left, Right}, P) ->
 	    treeforall(Right, P)
     end;
 treeforall(leaf,_) ->
-    io:format("Reached end~n",[]),
     true.
 
 
